@@ -2,11 +2,16 @@
   // Cloudflare Workers configuration.
   //
   // The static site lives in ./public and is served by the assets binding.
-  // Any request that does not match a static file (i.e. /api/translate)
+  // Any request that does not match a static file (i.e. /api/letter)
   // falls through to src/worker.js.
   //
   // Translation runs on Workers AI via the "ai" binding, so no third-party
   // API key is needed.
+  //
+  // MAX_AI_CALLS is a hard spending guard. Workers AI bills per neuron once
+  // the daily free allowance is gone and Cloudflare has no spend cap, so the
+  // Worker counts AI calls in the BudgetCounter durable object and refuses
+  // new ones past this number. 55,000 calls is roughly $15 worst case.
   "name": "wangwang-email",
   "main": "src/worker.js",
   "compatibility_date": "2026-08-20",
@@ -17,6 +22,17 @@
   "ai": {
     "binding": "AI"
   },
+  "vars": {
+    "MAX_AI_CALLS": "55000"
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "BUDGET", "class_name": "BudgetCounter" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["BudgetCounter"] }
+  ],
   "observability": {
     "enabled": true
   }
