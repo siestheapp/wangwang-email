@@ -3,30 +3,92 @@
  *
  * Static files in ./public are served by the ASSETS binding declared in
  * wrangler.jsonc. Any request that does not match a static file falls through
- * to this Worker, which serves the /api/translate endpoint.
+ * to this Worker.
  *
- * Translation runs on Cloudflare Workers AI (Qwen) through the AI binding, so
- * there is no third-party API key and nothing sensitive reaches the browser.
+ * Endpoints:
+ *   POST /api/letter   compose a full Simplified Chinese public-comment letter,
+ *                      or back-translate one into English (mode: "explain")
+ *   POST /api/translate  plain English -> Simplified Chinese (kept so that any
+ *                      still-open copy of the previous page keeps working)
+ *   GET  /api/health   liveness + binding check
+ *
+ * Everything runs on Cloudflare Workers AI through the AI binding, so there is
+ * no third-party API key and nothing sensitive reaches the browser.
  */
 
 const MODEL = "@cf/qwen/qwen3-30b-a3b-fp8";
-const MAX_CHARS = 1800;
+const MAX_INPUT = 1500;
 
-const SYSTEM_PROMPT = [
+const COMPOSE_SYSTEM = [
+  "You draft formal public-comment letters in Simplified Chinese, addressed to the",
+  "Chinese government working group that is collecting public input on the draft",
+  "Anti-Cyberviolence Law.",
+  "",
+  "Write the letter in Simplified Chinese only. Use polite, warm, constructive",
+  "language throughout. Never use angry, accusatory, sarcastic or threatening",
+  "wording, and never make demands - make respectful suggestions.",
+  "",
+  "Follow this five-part structure as flowing paragraphs. Do not number the parts,",
+  "do not add headings, and do not label them:",
+  "",
+  "1. Address the working group and its staff. Thank them for opening a public",
+  "channel to hear people's voices, then state the purpose of the letter in one",
+  "sentence.",
+  "",
+  "2. Describe, in the writer's own voice, how violent images and videos online have",
+  "affected their daily life and emotional wellbeing. Base this ONLY on the writer's",
+  "notes given below. Do not invent specific events, dates, places or people.",
+  "",
+  "3. Make these three recommendations, in this order, each as its own paragraph:",
+  "(a) Urgently ban animal torture videos made for profit, and act against organised",
+  "animal torture groups operating on Chinese social media, on the dark web and in",
+  "encrypted messaging groups. Explain that this content psychologically harms",
+  "minors, encourages other criminal behaviour, and undermines social stability.",
+  "(b) Platform accountability: ask why animal abuse and torture accounts and groups",
+  "are able to stay active while the people who report them are attacked, and ask",
+  "that platforms detect coordinated abuse and torture material far better.",
+  "(c) Protection for people who report animal cruelty: they should not face",
+  "doxxing, harassment, rumours, personal-data leaks or retaliation. Ask for faster",
+  "protection for reporters and volunteers, and for investigation into how their",
+  "names, phone numbers, addresses and family details are being obtained and spread.",
+  "",
+  "4. State the writer's identity using the identity note given below.",
+  "",
+  "5. Close by briefly restating the writer's hope, respectfully asking that the",
+  "suggestions be considered, and thanking the staff again. Sign off as an ordinary",
+  "citizen, or as an ordinary person from the country named below, who cares deeply",
+  "about China's brighter future and development. Never invent a personal name.",
+  "",
+  "Wangwang is the name of a dog whose abuse case was widely reported; if the writer",
+  "mentions it, write it as 旺旺 and never treat it as a person's name.",
+  "",
+  "Vary your sentence structure, paragraph openings and word choice so that no two",
+  "letters you write read alike. This letter must read as one individual's own",
+  "words, never as a form letter.",
+  "",
+  "Return exactly this and nothing else:",
+  "SUBJECT: <a short Simplified Chinese subject line for the email>",
+  "BODY:",
+  "<the Simplified Chinese letter>"
+].join("\n");
+
+const EXPLAIN_SYSTEM = [
+  "You translate Simplified Chinese into clear, natural English.",
+  "Translate the user's message faithfully, preserving paragraph breaks.",
+  "Output only the English translation, with no notes or commentary."
+].join(" ");
+
+const TRANSLATE_SYSTEM = [
   "You are a professional English to Simplified Chinese translator.",
   "Translate the user's message into Simplified Chinese.",
-  "The text is a short, respectful public comment that a member of the public is",
-  "submitting to a Chinese government working group about animal cruelty and about",
-  "protecting people who speak out against it. Use polite, natural, formal written",
-  "Chinese suitable for an official public comment.",
+  "Use polite, natural, formal written Chinese suitable for an official public comment.",
   "Wangwang is the name of a dog whose abuse case was widely reported. Always write",
   "it as 旺旺 on its own; never add a Chinese surname and never treat it as a",
   "person's name.",
-  "Preserve the meaning, tone and paragraph breaks of the original.",
-  "Output ONLY the Simplified Chinese translation.",
-  "Do not add explanations, notes, pinyin, romanisation, quotation marks around the",
-  "whole text, or any English commentary."
+  "Output ONLY the Simplified Chinese translation, with no explanation or commentary."
 ].join(" ");
+
+const DEFAULT_SUBJECT = "关于《反网络暴力法》草案的公众意见";
 
 function json(data, status) {
   return new Response(JSON.stringify(data), {
@@ -50,48 +112,6 @@ function stripThinking(value) {
   return text.trim();
 }
 
-function tidy(value) {
-  var text = stripThinking(value);
-  // Drop a stray pair of wrapping quotes if the model added them.
-  var first = text.charAt(0);
-  var last = text.charAt(text.length - 1);
-  var quotes = ['"', "'", "“", "「", "『"];
-  var closers = ['"', "'", "”", "」", "』"];
-  for (var i = 0; i < quotes.length; i++) {
-    if (first === quotes[i] && last === closers[i]) {
-      text = text.slice(1, -1).trim();
-      break;
-    }
-  }
-  return text;
-}
-
-// The model sometimes breaks a single paragraph across several lines. Make the
-// translation's paragraph structure match the English the user actually wrote.
-function matchParagraphs(translated, original) {
-  var lines = translated.split("\n");
-  var i;
-  for (i = 0; i < lines.length; i++) {
-    lines[i] = lines[i].trim();
-  }
-
-  // A single-paragraph comment should come back as a single paragraph. Chinese
-  // does not use spaces between sentences, so the pieces join directly.
-  if (original.indexOf("\n") === -1) {
-    return lines.filter(function (line) { return line.length > 0; }).join("");
-  }
-
-  // Otherwise keep the breaks, but never more than one blank line in a row.
-  var out = [];
-  for (i = 0; i < lines.length; i++) {
-    if (lines[i] === "" && out.length > 0 && out[out.length - 1] === "") {
-      continue;
-    }
-    out.push(lines[i]);
-  }
-  return out.join("\n").trim();
-}
-
 function extractText(result) {
   if (!result) return "";
   if (typeof result === "string") return result;
@@ -103,69 +123,211 @@ function extractText(result) {
     }
     if (typeof choice.text === "string") return choice.text;
   }
-  if (typeof result.translated_text === "string") return result.translated_text;
   return "";
 }
 
-async function handleTranslate(request, env) {
+// Collapse runs of blank lines and trim each line, so the letter arrives tidy.
+function tidyParagraphs(value) {
+  var lines = String(value || "").split("\n");
+  var out = [];
+  var i;
+  for (i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (line === "" && out.length > 0 && out[out.length - 1] === "") {
+      continue;
+    }
+    out.push(line);
+  }
+  return out.join("\n").trim();
+}
+
+function parseLetter(raw) {
+  var text = stripThinking(raw);
+  var subject = "";
+  var body = text;
+
+  var subjectAt = text.indexOf("SUBJECT:");
+  var bodyAt = text.indexOf("BODY:");
+
+  if (subjectAt !== -1 && bodyAt !== -1 && bodyAt > subjectAt) {
+    subject = text.slice(subjectAt + 8, bodyAt).trim();
+    body = text.slice(bodyAt + 5).trim();
+  } else if (bodyAt !== -1) {
+    body = text.slice(bodyAt + 5).trim();
+  }
+
+  // Strip a stray pair of wrapping quotes around the subject.
+  subject = subject.replace("《《", "《").trim();
+  if (subject.length > 120) {
+    subject = "";
+  }
+
+  return { subject: subject || DEFAULT_SUBJECT, body: tidyParagraphs(body) };
+}
+
+function identityNote(scope, country) {
+  if (scope === "chinese") {
+    return [
+      "The writer is a Chinese citizen. Express this as: an ordinary citizen who",
+      "loves their country, values social stability, and cares deeply about life and",
+      "animal welfare."
+    ].join(" ");
+  }
+  var place = country || "another country";
+  return [
+    "The writer is an ordinary person from " + place + " who cares about China and",
+    "hopes to see it become even better. Include that China has made extraordinary",
+    "progress over the past thirty years, and that a country's strength is shown not",
+    "only through its economy but also through how it protects the vulnerable."
+  ].join(" ");
+}
+
+async function runModel(env, system, user, temperature, maxTokens) {
+  const result = await env.AI.run(MODEL, {
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user }
+    ],
+    max_tokens: maxTokens,
+    temperature: temperature
+  });
+  return extractText(result);
+}
+
+function friendlyError(error) {
+  const message = (error && error.message) || String(error);
+  console.log("Workers AI error", message);
+  const lowered = message.toLowerCase();
+  if (lowered.indexOf("capacity") !== -1 ||
+      lowered.indexOf("limit") !== -1 ||
+      lowered.indexOf("quota") !== -1 ||
+      message.indexOf("3040") !== -1) {
+    return json(
+      {
+        error: "The daily free limit for letter writing has been reached. " +
+          "Please try again in a few hours, or copy the text and write to the " +
+          "address yourself."
+      },
+      429
+    );
+  }
+  return json({ error: "Something went wrong. Please try again in a moment." }, 500);
+}
+
+async function handleLetter(request, env) {
   if (request.method !== "POST") {
     return json({ error: "Method not allowed." }, 405);
   }
+  if (!env.AI) {
+    return json({ error: "Letter writing is not configured yet." }, 500);
+  }
 
-  let body;
+  let payload;
   try {
-    body = await request.json();
+    payload = await request.json();
   } catch (e) {
     return json({ error: "Invalid request." }, 400);
   }
 
-  const text = typeof body?.text === "string" ? body.text.trim() : "";
+  const mode = payload && payload.mode === "explain" ? "explain" : "compose";
 
-  if (!text) {
-    return json({ error: "Please enter text to translate." }, 400);
+  if (mode === "explain") {
+    const chinese = typeof payload.text === "string" ? payload.text.trim() : "";
+    if (!chinese) {
+      return json({ error: "Nothing to translate yet." }, 400);
+    }
+    if (chinese.length > 4000) {
+      return json({ error: "That letter is too long to translate back." }, 400);
+    }
+    try {
+      const english = stripThinking(
+        await runModel(env, EXPLAIN_SYSTEM, chinese, 0.2, 1500)
+      );
+      if (!english) {
+        return json({ error: "Could not produce an English version." }, 502);
+      }
+      return json({ english: tidyParagraphs(english) });
+    } catch (error) {
+      return friendlyError(error);
+    }
   }
 
-  if (text.length > MAX_CHARS) {
-    return json({ error: "Please keep your comment under 1,800 characters." }, 400);
+  const impact = typeof payload.impact === "string" ? payload.impact.trim() : "";
+  const emphasis = typeof payload.emphasis === "string" ? payload.emphasis.trim() : "";
+  const scope = payload.scope === "chinese" ? "chinese" : "international";
+  const country = typeof payload.country === "string" ? payload.country.trim() : "";
+
+  if (!impact) {
+    return json({ error: "Please write a few words in your own voice first." }, 400);
+  }
+  if (impact.length + emphasis.length > MAX_INPUT) {
+    return json({ error: "Please keep your notes under 1,500 characters." }, 400);
+  }
+  if (scope !== "chinese" && !country) {
+    return json({ error: "Please say which country you are writing from." }, 400);
   }
 
+  const userMessage = [
+    "Identity note: " + identityNote(scope, country),
+    "",
+    "The writer's own notes on how violent images and videos online have affected " +
+      "them (this is the raw material for part 2 - rewrite it in Chinese in their " +
+      "voice, do not add events they did not describe):",
+    impact,
+    "",
+    "Points the writer especially wants to emphasise:",
+    emphasis || "(none given - keep the three recommendations evenly weighted)"
+  ].join("\n");
+
+  try {
+    const raw = await runModel(env, COMPOSE_SYSTEM, userMessage, 0.8, 1600);
+    const letter = parseLetter(raw);
+
+    if (!letter.body || letter.body.length < 40) {
+      console.log("Short letter", JSON.stringify(raw).slice(0, 400));
+      return json({ error: "The letter came back incomplete. Please try again." }, 502);
+    }
+
+    return json({ subject: letter.subject, letter: letter.body });
+  } catch (error) {
+    return friendlyError(error);
+  }
+}
+
+// Kept for compatibility with any still-open copy of the previous page.
+async function handleTranslate(request, env) {
+  if (request.method !== "POST") {
+    return json({ error: "Method not allowed." }, 405);
+  }
   if (!env.AI) {
     return json({ error: "Translation is not configured yet." }, 500);
   }
 
+  let payload;
   try {
-    const result = await env.AI.run(MODEL, {
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: text }
-      ],
-      max_tokens: 1600,
-      temperature: 0.2
-    });
+    payload = await request.json();
+  } catch (e) {
+    return json({ error: "Invalid request." }, 400);
+  }
 
-    const translation = matchParagraphs(tidy(extractText(result)), text);
+  const text = typeof payload.text === "string" ? payload.text.trim() : "";
+  if (!text) {
+    return json({ error: "Please enter text to translate." }, 400);
+  }
+  if (text.length > 1800) {
+    return json({ error: "Please keep your comment under 1,800 characters." }, 400);
+  }
 
+  try {
+    const translation = tidyParagraphs(
+      stripThinking(await runModel(env, TRANSLATE_SYSTEM, text, 0.2, 1200))
+    );
     if (!translation) {
-      console.log("Empty translation", JSON.stringify(result).slice(0, 500));
-      return json({ error: "No translation was returned. Please try again." }, 502);
+      return json({ error: "No translation was returned." }, 502);
     }
-
     return json({ translation: translation });
   } catch (error) {
-    const message = (error && error.message) || String(error);
-    console.log("Translation error", message);
-
-    // Workers AI has a free daily allowance; say so plainly if it runs out.
-    if (message.toLowerCase().indexOf("capacity") !== -1 ||
-        message.toLowerCase().indexOf("limit") !== -1 ||
-        message.indexOf("3040") !== -1) {
-      return json(
-        { error: "Translation is temporarily over its daily limit. Please try again later." },
-        429
-      );
-    }
-
-    return json({ error: "Unable to translate right now. Please try again." }, 500);
+    return friendlyError(error);
   }
 }
 
@@ -173,11 +335,14 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    if (url.pathname === "/api/letter") {
+      return handleLetter(request, env);
+    }
+
     if (url.pathname === "/api/translate") {
       return handleTranslate(request, env);
     }
 
-    // Health check: confirms the Worker is live and the AI binding is present.
     if (url.pathname === "/api/health") {
       return json({ ok: true, model: MODEL, aiBinding: Boolean(env.AI) });
     }
