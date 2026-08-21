@@ -4,12 +4,18 @@
   // The static site lives in ./public and is served by the assets binding.
   // Any request that does not match a static file (i.e. /api/translate)
   // falls through to src/worker.js.
+  //
+  // Translation runs on Workers AI via the "ai" binding, so no third-party
+  // API key is needed.
   "name": "wangwang-email",
   "main": "src/worker.js",
   "compatibility_date": "2026-08-20",
   "assets": {
     "directory": "./public",
     "binding": "ASSETS"
+  },
+  "ai": {
+    "binding": "AI"
   },
   "observability": {
     "enabled": true
