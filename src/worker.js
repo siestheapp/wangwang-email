@@ -193,6 +193,87 @@ async function runModel(env, system, user, temperature, maxTokens) {
   });
   return extractText(result);
 }
+/* ------------------------------------------------------------------ *
+ * Spend guard.
+ *
+ * Every Workers AI call costs money once the daily free neuron
+ * allowance is gone, and Cloudflare has no hard spend cap. This counts
+ * AI calls in a Durable Object - which serialises reads and writes, so
+ * the count stays correct under concurrency - and refuses new calls
+ * once the ceiling is reached. The ceiling is set in wrangler.jsonc.
+ * ------------------------------------------------------------------ */
+
+const DEFAULT_MAX_AI_CALLS = 55000;
+
+export class BudgetCounter {
+  constructor(state) {
+    this.state = state;
+  }
+
+  async fetch(request) {
+    const url = new URL(request.url);
+    const limit = Number(url.searchParams.get("limit")) || DEFAULT_MAX_AI_CALLS;
+    const ceiling = Number(url.searchParams.get("ceiling")) || limit;
+
+    let used = (await this.state.storage.get("used")) || 0;
+
+    if (url.pathname === "/read") {
+      return Response.json({ used: used, limit: limit });
+    }
+
+    if (used >= ceiling) {
+      return Response.json({ allowed: false, used: used, limit: limit });
+    }
+
+    used = used + 1;
+    await this.state.storage.put("used", used);
+    return Response.json({ allowed: true, used: used, limit: limit });
+  }
+}
+
+function budgetLimit(env) {
+  const parsed = parseInt(env.MAX_AI_CALLS, 10);
+  return parsed > 0 ? parsed : DEFAULT_MAX_AI_CALLS;
+}
+
+function budgetStub(env) {
+  if (!env.BUDGET) return null;
+  return env.BUDGET.get(env.BUDGET.idFromName("global"));
+}
+
+// Reserve the last slice of the budget for writing letters, so that
+// back-translations can never starve the thing people actually came for.
+async function spend(env, ceilingFraction) {
+  const stub = budgetStub(env);
+  if (!stub) return { allowed: true, used: 0, limit: 0, untracked: true };
+
+  const limit = budgetLimit(env);
+  const ceiling = Math.floor(limit * (ceilingFraction || 1));
+  const res = await stub.fetch(
+    "https://budget/spend?limit=" + limit + "&ceiling=" + ceiling
+  );
+  return res.json();
+}
+
+async function readBudget(env) {
+  const stub = budgetStub(env);
+  if (!stub) return { used: 0, limit: 0, untracked: true };
+  const res = await stub.fetch("https://budget/read?limit=" + budgetLimit(env));
+  return res.json();
+}
+
+function cappedResponse() {
+  return json(
+    {
+      capped: true,
+      error:
+        "This site has reached the spending limit its organiser set, so it " +
+        "cannot write new letters right now. You can still send your own - " +
+        "the address, the subject and what to ask for are shown below."
+    },
+    429
+  );
+}
 
 function friendlyError(error) {
   const message = (error && error.message) || String(error);
@@ -239,6 +320,11 @@ async function handleLetter(request, env) {
     if (chinese.length > 4000) {
       return json({ error: "That letter is too long to translate back." }, 400);
     }
+    const allowance = await spend(env, 0.95);
+    if (!allowance.allowed) {
+      return cappedResponse();
+    }
+
     try {
       const english = stripThinking(
         await runModel(env, EXPLAIN_SYSTEM, chinese, 0.2, 1500)
@@ -279,6 +365,11 @@ async function handleLetter(request, env) {
     emphasis || "(none given - keep the three recommendations evenly weighted)"
   ].join("\n");
 
+  const allowance = await spend(env, 1);
+  if (!allowance.allowed) {
+    return cappedResponse();
+  }
+
   try {
     const raw = await runModel(env, COMPOSE_SYSTEM, userMessage, 0.8, 1600);
     const letter = parseLetter(raw);
@@ -318,6 +409,11 @@ async function handleTranslate(request, env) {
     return json({ error: "Please keep your comment under 1,800 characters." }, 400);
   }
 
+  const allowance = await spend(env, 0.95);
+  if (!allowance.allowed) {
+    return cappedResponse();
+  }
+
   try {
     const translation = tidyParagraphs(
       stripThinking(await runModel(env, TRANSLATE_SYSTEM, text, 0.2, 1200))
@@ -344,7 +440,15 @@ export default {
     }
 
     if (url.pathname === "/api/health") {
-      return json({ ok: true, model: MODEL, aiBinding: Boolean(env.AI) });
+      const budget = await readBudget(env);
+      return json({
+        ok: true,
+        model: MODEL,
+        aiBinding: Boolean(env.AI),
+        aiCallsUsed: budget.used,
+        aiCallLimit: budget.limit,
+        budgetTracked: !budget.untracked
+      });
     }
 
     if (env.ASSETS) {
