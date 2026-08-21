@@ -66,6 +66,32 @@ function tidy(value) {
   return text;
 }
 
+// The model sometimes breaks a single paragraph across several lines. Make the
+// translation's paragraph structure match the English the user actually wrote.
+function matchParagraphs(translated, original) {
+  var lines = translated.split("\n");
+  var i;
+  for (i = 0; i < lines.length; i++) {
+    lines[i] = lines[i].trim();
+  }
+
+  // A single-paragraph comment should come back as a single paragraph. Chinese
+  // does not use spaces between sentences, so the pieces join directly.
+  if (original.indexOf("\n") === -1) {
+    return lines.filter(function (line) { return line.length > 0; }).join("");
+  }
+
+  // Otherwise keep the breaks, but never more than one blank line in a row.
+  var out = [];
+  for (i = 0; i < lines.length; i++) {
+    if (lines[i] === "" && out.length > 0 && out[out.length - 1] === "") {
+      continue;
+    }
+    out.push(lines[i]);
+  }
+  return out.join("\n").trim();
+}
+
 function extractText(result) {
   if (!result) return "";
   if (typeof result === "string") return result;
@@ -117,7 +143,7 @@ async function handleTranslate(request, env) {
       temperature: 0.2
     });
 
-    const translation = tidy(extractText(result));
+    const translation = matchParagraphs(tidy(extractText(result)), text);
 
     if (!translation) {
       console.log("Empty translation", JSON.stringify(result).slice(0, 500));
