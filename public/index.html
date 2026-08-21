@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Speak Up for Wangwang</title>
-  <meta name="description" content="Write a short personal comment, translate it to Simplified Chinese, and open a ready-to-send email to the official public comment address." />
+  <meta name="description" content="Write a short personal note, get a complete public-comment letter in Simplified Chinese, and open a ready-to-send email to the Cyberspace Administration of China." />
   <style>
     :root {
       --bg: #fffaf3;
@@ -23,11 +23,7 @@
       color: var(--text);
       line-height: 1.45;
     }
-    .wrap {
-      width: min(760px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 40px 0 56px;
-    }
+    .wrap { width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 56px; }
     .hero, .card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -37,57 +33,31 @@
     }
     .hero { margin-bottom: 18px; }
     .eyebrow {
-      color: var(--accent);
-      font-size: 13px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      margin-bottom: 8px;
+      color: var(--accent); font-size: 13px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px;
     }
     h1 { font-size: clamp(30px, 7vw, 48px); line-height: 1.05; margin: 0 0 12px; }
     h2 { margin: 0 0 8px; font-size: 22px; }
     h3 { margin: 0 0 6px; font-size: 15px; }
     p { margin: 0 0 12px; }
     .deadline {
-      display: inline-block;
-      padding: 7px 10px;
-      border-radius: 999px;
-      background: #fff0ed;
-      color: var(--accent);
-      font-weight: 750;
-      font-size: 14px;
-      margin-top: 4px;
+      display: inline-block; padding: 7px 12px; border-radius: 999px;
+      background: #fff0ed; color: var(--accent); font-weight: 750;
+      font-size: 14px; margin-top: 4px;
     }
     .card { margin-top: 16px; }
     label { display: block; font-weight: 700; margin-bottom: 8px; }
     textarea, .field {
-      width: 100%;
-      border: 1px solid #d8ccc2;
-      border-radius: 14px;
-      padding: 14px;
-      font: inherit;
-      color: var(--text);
-      background: #fff;
+      width: 100%; border: 1px solid #d8ccc2; border-radius: 14px;
+      padding: 14px; font: inherit; color: var(--text); background: #fff;
     }
-    textarea { min-height: 150px; resize: vertical; }
+    textarea { min-height: 130px; resize: vertical; }
     textarea:focus, .field:focus { outline: 2px solid #eab2aa; border-color: var(--accent); }
-    .examples {
-      font-size: 14px;
-      color: var(--muted);
-      margin-top: 10px;
-    }
+    .hint { font-size: 14px; color: var(--muted); margin: -2px 0 12px; }
     button, .button {
-      width: 100%;
-      border: 0;
-      border-radius: 14px;
-      padding: 15px 18px;
-      font: inherit;
-      font-weight: 800;
-      cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-      display: block;
-      margin-top: 12px;
+      width: 100%; border: 0; border-radius: 14px; padding: 15px 18px;
+      font: inherit; font-weight: 800; cursor: pointer; text-align: center;
+      text-decoration: none; display: block; margin-top: 12px;
     }
     .primary { background: var(--accent); color: #fff; }
     .primary:hover { background: var(--accent2); }
@@ -96,57 +66,48 @@
     button:disabled { opacity: .55; cursor: not-allowed; }
     a.button.disabled { opacity: .55; pointer-events: none; }
     .status { min-height: 22px; color: var(--muted); font-size: 14px; margin-top: 8px; }
-    .translation {
-      display: none;
-      margin-top: 14px;
-    }
-    .translation.show { display: block; }
-    .translation textarea { min-height: 130px; background: #fafafa; }
-    .note {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 10px;
-    }
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 16px;
-    }
+    .note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
     .step {
-      background: #fff7f2;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 12px;
-      font-size: 14px;
+      background: #fff7f2; border: 1px solid var(--border);
+      border-radius: 14px; padding: 12px; font-size: 14px;
     }
     .step b { display: block; margin-bottom: 3px; }
 
+    .choice { display: grid; gap: 10px; margin-bottom: 12px; }
+    .choice-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      border: 1px solid #d8ccc2; border-radius: 14px; padding: 13px 14px;
+      cursor: pointer; background: #fff;
+    }
+    .choice-item.selected { border-color: var(--accent); background: #fff7f5; }
+    .choice-item input { margin: 3px 0 0; flex: none; }
+    .choice-item span { font-weight: 700; }
+    .choice-item small { display: block; font-weight: 400; color: var(--muted); margin-top: 2px; }
+
+    .asks { margin: 0 0 4px; padding-left: 20px; font-size: 14px; color: var(--muted); }
+    .asks li { margin-bottom: 5px; }
+
+    .result { display: none; margin-top: 16px; }
+    .result.show { display: block; }
+    .letter { min-height: 300px; background: #fafafa; line-height: 1.7; }
+    .subject-field { background: #fafafa; margin-bottom: 4px; }
+
+    .english { display: none; margin-top: 12px; padding: 14px; background: #f8f4f0;
+      border: 1px solid var(--border); border-radius: 14px; font-size: 14px;
+      white-space: pre-wrap; }
+    .english.show { display: block; }
+
     .banner {
-      display: none;
-      background: #fff0ed;
-      border: 1px solid #f3c6bf;
-      color: #7e1f17;
-      border-radius: 14px;
-      padding: 13px 15px;
-      font-size: 14px;
-      margin-bottom: 16px;
+      display: none; background: #fff0ed; border: 1px solid #f3c6bf; color: #7e1f17;
+      border-radius: 14px; padding: 13px 15px; font-size: 14px; margin-bottom: 16px;
     }
     .banner.show { display: block; }
     .banner b { display: block; margin-bottom: 3px; }
 
-    .fallback {
-      display: none;
-      margin-top: 18px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-    }
+    .fallback { display: none; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
     .fallback.show { display: block; }
-    .btn-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .btn-row > * { margin-top: 0; }
     .manual { display: none; margin-top: 14px; }
     .manual.show { display: block; }
@@ -174,48 +135,100 @@
     <section class="hero">
       <div class="eyebrow">Official public comment opportunity</div>
       <h1>Speak Up for Wangwang</h1>
-      <p>Write a short personal comment, translate it to Simplified Chinese, and open a ready-to-send email to the official public-comment address.</p>
-      <span class="deadline">Deadline: August 28, 2026</span>
+      <p>China is taking public comments on its draft Anti-Cyberviolence Law. Write a few
+      sentences in your own words, and this page will compose a complete letter in
+      Simplified Chinese for you to review and send yourself.</p>
+      <span class="deadline" id="deadline">Deadline: August 28, 2026</span>
 
       <div class="steps">
-        <div class="step"><b>1. Write</b>Add 1–3 sentences in your own words.</div>
-        <div class="step"><b>2. Translate</b>Generate a Simplified Chinese translation.</div>
-        <div class="step"><b>3. Send</b>Open the pre-addressed email and press Send.</div>
+        <div class="step"><b>1. Tell us</b>A few sentences, in your own words.</div>
+        <div class="step"><b>2. Compose</b>Get a full letter in Simplified Chinese.</div>
+        <div class="step"><b>3. Send</b>Review it, then send it yourself.</div>
       </div>
     </section>
 
     <section class="card">
-      <h2>1. Write your personal comment</h2>
-      <p>Keep it short and genuine. Your submission does not need to be perfect.</p>
+      <h2>1. Where are you writing from?</h2>
+      <p class="hint">This changes how you introduce yourself in the letter.</p>
 
-      <label for="english">Your words</label>
-      <textarea id="english" maxlength="1800" placeholder="Example: Wangwang's case deeply affected me because no animal should suffer that kind of cruelty. People who expose or speak out about animal abuse should be able to do so without being harassed, threatened, doxxed, or falsely reported online."></textarea>
-
-      <div class="examples">
-        You can write about how Wangwang's case affected you, why animal advocates should be protected from online abuse, or why stronger animal-welfare protections matter to you.
+      <div class="choice">
+        <label class="choice-item" id="optChinese">
+          <input type="radio" name="scope" value="chinese" />
+          <span>I am a Chinese citizen
+            <small>You will write as an ordinary citizen who values social stability and cares about animal welfare.</small>
+          </span>
+        </label>
+        <label class="choice-item selected" id="optIntl">
+          <input type="radio" name="scope" value="international" checked />
+          <span>I am writing from another country
+            <small>You will write as someone who cares about China and hopes to see it do even better.</small>
+          </span>
+        </label>
       </div>
 
-      <button id="translateBtn" class="primary">Translate to Simplified Chinese</button>
+      <div id="countryWrap">
+        <label for="country">Which country?</label>
+        <input id="country" class="field" maxlength="60" placeholder="e.g. United States" />
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. How has this affected you?</h2>
+      <p class="hint">This is the part that makes your letter yours. Write plainly, in any
+      language — a few sentences is enough. Say how seeing violent images or videos online
+      has affected your daily life and how you feel. If it has upset or traumatised you,
+      it is worth saying so.</p>
+
+      <label for="impact">Your words</label>
+      <textarea id="impact" maxlength="1200" placeholder="Example: I saw what happened to Wangwang and I could not sleep for days afterwards. I did not go looking for it — it appeared on my feed. I keep thinking about how many people are making money from filming animals being hurt, and about the people who reported it being attacked online for speaking up."></textarea>
+
+      <label for="emphasis" style="margin-top:16px">Anything you especially want to emphasise? <span style="font-weight:400;color:#6f625a">(optional)</span></label>
+      <textarea id="emphasis" maxlength="400" style="min-height:80px" placeholder="Example: I care most about the videos being sold in encrypted group chats, and about children seeing this content."></textarea>
+
+      <h3 style="margin-top:18px">Your letter will always ask for these three things</h3>
+      <ol class="asks">
+        <li>An urgent ban on animal torture videos made for profit, and action against organised torture groups on social media, the dark web and encrypted messaging apps — because this content harms minors and undermines social stability.</li>
+        <li>Platform accountability, so abuse accounts stop outlasting the people who report them.</li>
+        <li>Protection for people who report cruelty, and investigation into how their personal details are leaked.</li>
+      </ol>
+
+      <button id="composeBtn" class="primary">Write my letter in Chinese</button>
       <div id="status" class="status"></div>
-
-      <div id="translationWrap" class="translation">
-        <label for="chinese">Simplified Chinese translation</label>
-        <textarea id="chinese"></textarea>
-        <p class="note">Machine translation can make mistakes. Your English original will also be included in the email so your intended meaning is preserved.</p>
-      </div>
     </section>
 
-    <section class="card">
-      <h2>2. Open the email</h2>
-      <p>The recipient, subject, and standard text will be filled in automatically, along with your English and Chinese comments.</p>
+    <section class="card" id="resultCard" style="display:none">
+      <h2>3. Review your letter</h2>
+      <p class="hint">This letter was written from your notes, so it is different from
+      everyone else's. Read it, edit anything you want, then send it.</p>
+
+      <label for="subject">Subject</label>
+      <input id="subject" class="field subject-field" />
+
+      <label for="letter" style="margin-top:14px">Your letter (Simplified Chinese)</label>
+      <textarea id="letter" class="letter"></textarea>
+
+      <button id="explainBtn" class="secondary">Show me what this says in English</button>
+      <div id="english" class="english"></div>
+      <p class="note">The letter is sent in Chinese only, as the campaign guide asks. It is
+      signed as an ordinary citizen or an ordinary person from your country — you do not
+      have to give your name.</p>
+
+      <button id="regenerateBtn" class="secondary">Write me a different version</button>
+    </section>
+
+    <section class="card" id="sendCard" style="display:none">
+      <h2>4. Send it</h2>
+      <p>The address and subject are filled in for you. Nothing is sent until you press
+      send in your own email app.</p>
 
       <a id="emailLink" class="button primary disabled" href="#" role="button">Open Ready-to-Send Email</a>
-      <p class="note">Before sending, review the message, add your name at the bottom, and make any changes you want.</p>
+      <p class="note">Review the message once more before sending.</p>
 
       <div id="fallback" class="fallback">
         <h3>Nothing happened?</h3>
         <p class="note" style="margin-top:0">
-          Some phones and in-app browsers have no email app set up. Either of these will work instead.
+          Some phones and in-app browsers have no email app set up, and this letter is long
+          enough that a few mail apps cut it short. Either of these always works.
         </p>
         <div class="btn-row">
           <button id="copyBtn" class="secondary">Copy the whole email</button>
@@ -242,13 +255,22 @@
 
   <script>
     var RECIPIENT = "fanwangbaofa@cac.gov.cn";
-    var SUBJECT = "Public Comment on the Proposed Anti-Cyberviolence Law";
+    var DEADLINE = new Date(2026, 7, 28);
 
-    var english = document.getElementById("english");
-    var chinese = document.getElementById("chinese");
-    var translateBtn = document.getElementById("translateBtn");
+    var impact = document.getElementById("impact");
+    var emphasis = document.getElementById("emphasis");
+    var country = document.getElementById("country");
+    var countryWrap = document.getElementById("countryWrap");
+    var composeBtn = document.getElementById("composeBtn");
+    var regenerateBtn = document.getElementById("regenerateBtn");
+    var explainBtn = document.getElementById("explainBtn");
     var statusEl = document.getElementById("status");
-    var translationWrap = document.getElementById("translationWrap");
+
+    var resultCard = document.getElementById("resultCard");
+    var sendCard = document.getElementById("sendCard");
+    var subject = document.getElementById("subject");
+    var letter = document.getElementById("letter");
+    var englishBox = document.getElementById("english");
 
     var emailLink = document.getElementById("emailLink");
     var gmailLink = document.getElementById("gmailLink");
@@ -260,74 +282,70 @@
     var subjField = document.getElementById("subjField");
     var bodyField = document.getElementById("bodyField");
 
+    (function countdown() {
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+      var days = Math.round((DEADLINE - today) / 86400000);
+      var el = document.getElementById("deadline");
+      if (days > 1) {
+        el.textContent = "Deadline: August 28, 2026 — " + days + " days left";
+      } else if (days === 1) {
+        el.textContent = "Deadline: August 28, 2026 — tomorrow";
+      } else if (days === 0) {
+        el.textContent = "Deadline: today, August 28, 2026";
+      }
+    })();
+
     // Many people arrive from TikTok and never leave its in-app browser, where
     // mailto: links are frequently ignored with no feedback at all.
     (function detectInAppBrowser() {
       var ua = navigator.userAgent || "";
-      var inApp = /BytedanceWebview|TikTok|musical_ly|Bytedance|FBAN|FBAV|FB_IAB|Instagram|Snapchat|Line\/|Twitter|Pinterest/i.test(ua);
-      if (inApp) {
+      if (/BytedanceWebview|TikTok|musical_ly|Bytedance|FBAN|FBAV|FB_IAB|Instagram|Snapchat|Line\/|Twitter|Pinterest/i.test(ua)) {
         document.getElementById("inAppBanner").classList.add("show");
       }
     })();
 
-    function buildBody(zh, en) {
-      return [
-        "Dear Working Group,",
-        "",
-        "Thank you for providing the public with an opportunity to comment on the proposed Anti-Cyberviolence Law.",
-        "",
-        "My personal comments are below.",
-        "",
-        "Simplified Chinese translation:",
-        zh,
-        "",
-        "English original:",
-        en,
-        "",
-        "I respectfully ask that the final law provide strong protections against online harassment, doxxing, intimidation, false reports, and coordinated attacks against people who document, report, or speak out about animal cruelty.",
-        "",
-        "I also hope China will continue strengthening protections for animal welfare and for people who peacefully advocate on behalf of animals.",
-        "",
-        "Thank you for considering my comments.",
-        "",
-        "Sincerely,",
-        "",
-        "[Your name]"
-      ].join("\n");
+    function selectedScope() {
+      var checked = document.querySelector("input[name=scope]:checked");
+      return checked ? checked.value : "international";
     }
 
-    function currentBody() {
-      return buildBody(chinese.value.trim(), english.value.trim());
+    function syncScope() {
+      var scope = selectedScope();
+      countryWrap.style.display = scope === "chinese" ? "none" : "block";
+      document.getElementById("optChinese").classList.toggle("selected", scope === "chinese");
+      document.getElementById("optIntl").classList.toggle("selected", scope !== "chinese");
     }
+
+    Array.prototype.forEach.call(
+      document.querySelectorAll("input[name=scope]"),
+      function (el) { el.addEventListener("change", syncScope); }
+    );
+    syncScope();
 
     function refreshEmail() {
-      var en = english.value.trim();
-      var zh = chinese.value.trim();
-      var ready = Boolean(en && zh);
+      var subj = subject.value.trim();
+      var body = letter.value.trim();
 
-      if (!ready) {
+      if (!subj || !body) {
         emailLink.classList.add("disabled");
         emailLink.removeAttribute("href");
         fallback.classList.remove("show");
         return;
       }
 
-      var body = buildBody(zh, en);
-
-      emailLink.href =
-        "mailto:" + RECIPIENT +
-        "?subject=" + encodeURIComponent(SUBJECT) +
+      emailLink.href = "mailto:" + RECIPIENT +
+        "?subject=" + encodeURIComponent(subj) +
         "&body=" + encodeURIComponent(body);
       emailLink.classList.remove("disabled");
 
-      gmailLink.href =
-        "https://mail.google.com/mail/?view=cm&fs=1" +
+      gmailLink.href = "https://mail.google.com/mail/?view=cm&fs=1" +
         "&to=" + encodeURIComponent(RECIPIENT) +
-        "&su=" + encodeURIComponent(SUBJECT) +
+        "&su=" + encodeURIComponent(subj) +
         "&body=" + encodeURIComponent(body);
 
       toField.value = RECIPIENT;
-      subjField.value = SUBJECT;
+      subjField.value = subj;
       bodyField.value = body;
 
       fallback.classList.add("show");
@@ -360,57 +378,110 @@
       }
     }
 
-    translateBtn.addEventListener("click", async function () {
-      var text = english.value.trim();
-      if (!text) {
-        statusEl.textContent = "Please write 1–3 sentences first.";
+    async function compose(isRetry) {
+      var notes = impact.value.trim();
+      if (!notes) {
+        statusEl.textContent = "Please write a few sentences in your own words first.";
+        impact.focus();
+        return;
+      }
+      var scope = selectedScope();
+      if (scope !== "chinese" && !country.value.trim()) {
+        statusEl.textContent = "Please say which country you are writing from.";
+        country.focus();
         return;
       }
 
-      translateBtn.disabled = true;
-      statusEl.textContent = "Translating…";
+      composeBtn.disabled = true;
+      regenerateBtn.disabled = true;
+      statusEl.textContent = isRetry
+        ? "Writing another version…"
+        : "Writing your letter in Chinese… this takes a few seconds.";
 
       try {
-        var res = await fetch("/api/translate", {
+        var res = await fetch("/api/letter", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: text })
+          body: JSON.stringify({
+            mode: "compose",
+            impact: notes,
+            emphasis: emphasis.value.trim(),
+            scope: scope,
+            country: country.value.trim()
+          })
         });
 
         var data = await res.json();
+        if (!res.ok) { throw new Error(data.error || "Could not write the letter."); }
 
-        if (!res.ok) {
-          throw new Error(data.error || "Translation failed.");
-        }
+        subject.value = data.subject;
+        letter.value = data.letter;
+        englishBox.classList.remove("show");
+        englishBox.textContent = "";
+        explainBtn.textContent = "Show me what this says in English";
 
-        chinese.value = data.translation;
-        translationWrap.classList.add("show");
+        resultCard.style.display = "block";
+        sendCard.style.display = "block";
         refreshEmail();
-        statusEl.textContent = "Translation ready. Review it, then open the email.";
+        statusEl.textContent = "Your letter is ready. Read it below.";
+        resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (err) {
-        statusEl.textContent = err.message || "Translation failed. Please try again.";
+        statusEl.textContent = err.message || "Something went wrong. Please try again.";
       } finally {
-        translateBtn.disabled = false;
+        composeBtn.disabled = false;
+        regenerateBtn.disabled = false;
+      }
+    }
+
+    composeBtn.addEventListener("click", function () { compose(false); });
+    regenerateBtn.addEventListener("click", function () { compose(true); });
+
+    explainBtn.addEventListener("click", async function () {
+      if (englishBox.classList.contains("show")) {
+        englishBox.classList.remove("show");
+        explainBtn.textContent = "Show me what this says in English";
+        return;
+      }
+      if (englishBox.textContent.trim()) {
+        englishBox.classList.add("show");
+        explainBtn.textContent = "Hide the English version";
+        return;
+      }
+
+      explainBtn.disabled = true;
+      explainBtn.textContent = "Translating back to English…";
+      try {
+        var res = await fetch("/api/letter", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "explain", text: letter.value.trim() })
+        });
+        var data = await res.json();
+        if (!res.ok) { throw new Error(data.error || "Could not translate it back."); }
+        englishBox.textContent = data.english;
+        englishBox.classList.add("show");
+        explainBtn.textContent = "Hide the English version";
+      } catch (err) {
+        englishBox.textContent = err.message || "Could not translate it back.";
+        englishBox.classList.add("show");
+        explainBtn.textContent = "Show me what this says in English";
+      } finally {
+        explainBtn.disabled = false;
       }
     });
 
-    // Keep the email in sync if either box is edited by hand.
-    english.addEventListener("input", refreshEmail);
-    chinese.addEventListener("input", refreshEmail);
+    subject.addEventListener("input", refreshEmail);
+    letter.addEventListener("input", refreshEmail);
 
     showBtn.addEventListener("click", function () {
       var open = manual.classList.toggle("show");
       showBtn.textContent = open ? "Hide the email text" : "Show the email text";
-      if (open) {
-        manual.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
     });
 
     copyBtn.addEventListener("click", function () {
-      var text =
-        "To: " + RECIPIENT + "\n" +
-        "Subject: " + SUBJECT + "\n\n" +
-        currentBody();
+      var text = "To: " + RECIPIENT + "\n" +
+        "Subject: " + subject.value.trim() + "\n\n" +
+        letter.value.trim();
       copyText(text, copyBtn, "Copy the whole email");
     });
 
@@ -418,10 +489,10 @@
       copyText(RECIPIENT, this, "Copy address");
     });
     document.getElementById("copySubjBtn").addEventListener("click", function () {
-      copyText(SUBJECT, this, "Copy subject");
+      copyText(subject.value.trim(), this, "Copy subject");
     });
     document.getElementById("copyBodyBtn").addEventListener("click", function () {
-      copyText(currentBody(), this, "Copy message");
+      copyText(letter.value.trim(), this, "Copy message");
     });
 
     [toField, subjField, bodyField].forEach(function (el) {
