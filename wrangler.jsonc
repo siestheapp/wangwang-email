@@ -1,7 +1,17 @@
 {
+  // Cloudflare Workers configuration.
+  //
+  // The static site lives in ./public and is served by the assets binding.
+  // Any request that does not match a static file (i.e. /api/translate)
+  // falls through to src/worker.js.
   "name": "wangwang-email",
+  "main": "src/worker.js",
   "compatibility_date": "2026-08-20",
   "assets": {
-    "directory": "./public"
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
   }
 }
