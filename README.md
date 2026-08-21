@@ -5,7 +5,8 @@ translates them to Simplified Chinese server-side, and then opens a pre-filled
 email in the visitor’s own mail app. Nothing is ever sent automatically - the
 visitor reviews the message and sends it themselves.
 
-- Live: https://wangwang-email.siestheapp.workers.dev
+- Live: https://forwangwang.org (also www.forwangwang.org)
+- Origin: https://wangwang-email.siestheapp.workers.dev
 - Recipient: fanwangbaofa@cac.gov.cn
 - Subject: Public Comment on the Proposed Anti-Cyberviolence Law
 - Deadline shown on the page: August 28, 2026
@@ -31,6 +32,10 @@ everything Cloudflare needs:
 Static files are matched first. Anything that is not a static file (that is,
 /api/translate) falls through to the Worker.
 
+forwangwang.org and www.forwangwang.org are attached as Worker custom domains
+(Worker -> Domains -> Custom Domains and Routes). Cloudflare issues and renews
+the TLS certificates automatically.
+
 ## Translation
 
 Translation runs on Cloudflare Workers AI using @cf/qwen/qwen3-30b-a3b-fp8.
@@ -44,6 +49,20 @@ The project originally used the DeepL API, but DeepL closed its free API tier
 to new signups in 2026. To move back to DeepL (or any other provider), replace
 the env.AI.run call in src/worker.js - the request and response shape of
 /api/translate does not need to change.
+
+## The email step
+
+The primary button is a mailto: link. That silently does nothing for a large
+share of real users - in-app browsers (TikTok, Instagram) commonly swallow
+mailto:, and some people have no default mail app configured. So the page also
+always shows, once a translation exists:
+
+- Copy the whole email (recipient, subject and body to the clipboard)
+- Open in Gmail (https web compose, which works inside webviews)
+- Show the email text (individual To / Subject / Message fields, each copyable)
+
+A banner appears at the top when an in-app browser is detected, telling the
+visitor to open the page in a real browser first.
 
 ## Checking it works
 
