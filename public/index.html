@@ -194,6 +194,21 @@
 
       <button id="composeBtn" class="primary">Write my letter in Chinese</button>
       <div id="status" class="status"></div>
+
+      <div id="cappedPanel" class="banner">
+        <b>This site has reached its spending limit.</b>
+        It cannot write letters right now, but your voice still counts just as much —
+        please send your own. Everything you need is here:
+        <ul style="margin:8px 0 0; padding-left:20px">
+          <li>Send to <b style="display:inline">fanwangbaofa@cac.gov.cn</b> before August 28</li>
+          <li>Write it in Simplified Chinese — Google Translate is fine for this</li>
+          <li>Say in your own words how this has affected you, then ask for the three
+            things listed above</li>
+          <li>Keep it polite and constructive, and sign off as an ordinary person who
+            cares about China's future</li>
+        </ul>
+        <button id="copyCappedBtn" class="secondary">Copy the address</button>
+      </div>
     </section>
 
     <section class="card" id="resultCard" style="display:none">
@@ -265,6 +280,7 @@
     var regenerateBtn = document.getElementById("regenerateBtn");
     var explainBtn = document.getElementById("explainBtn");
     var statusEl = document.getElementById("status");
+    var cappedPanel = document.getElementById("cappedPanel");
 
     var resultCard = document.getElementById("resultCard");
     var sendCard = document.getElementById("sendCard");
@@ -412,7 +428,11 @@
         });
 
         var data = await res.json();
-        if (!res.ok) { throw new Error(data.error || "Could not write the letter."); }
+        if (!res.ok) {
+          var failure = new Error(data.error || "Could not write the letter.");
+          failure.capped = Boolean(data.capped);
+          throw failure;
+        }
 
         subject.value = data.subject;
         letter.value = data.letter;
@@ -427,6 +447,11 @@
         resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (err) {
         statusEl.textContent = err.message || "Something went wrong. Please try again.";
+        if (err.capped) {
+          cappedPanel.classList.add("show");
+          statusEl.textContent = "";
+          cappedPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
       } finally {
         composeBtn.disabled = false;
         regenerateBtn.disabled = false;
@@ -483,6 +508,10 @@
         "Subject: " + subject.value.trim() + "\n\n" +
         letter.value.trim();
       copyText(text, copyBtn, "Copy the whole email");
+    });
+
+    document.getElementById("copyCappedBtn").addEventListener("click", function () {
+      copyText(RECIPIENT, this, "Copy the address");
     });
 
     document.getElementById("copyToBtn").addEventListener("click", function () {
