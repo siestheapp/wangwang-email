@@ -46,6 +46,7 @@
     }
     h1 { font-size: clamp(30px, 7vw, 48px); line-height: 1.05; margin: 0 0 12px; }
     h2 { margin: 0 0 8px; font-size: 22px; }
+    h3 { margin: 0 0 6px; font-size: 15px; }
     p { margin: 0 0 12px; }
     .deadline {
       display: inline-block;
@@ -59,10 +60,8 @@
     }
     .card { margin-top: 16px; }
     label { display: block; font-weight: 700; margin-bottom: 8px; }
-    textarea {
+    textarea, .field {
       width: 100%;
-      min-height: 150px;
-      resize: vertical;
       border: 1px solid #d8ccc2;
       border-radius: 14px;
       padding: 14px;
@@ -70,7 +69,8 @@
       color: var(--text);
       background: #fff;
     }
-    textarea:focus { outline: 2px solid #eab2aa; border-color: var(--accent); }
+    textarea { min-height: 150px; resize: vertical; }
+    textarea:focus, .field:focus { outline: 2px solid #eab2aa; border-color: var(--accent); }
     .examples {
       font-size: 14px;
       color: var(--muted);
@@ -92,7 +92,9 @@
     .primary { background: var(--accent); color: #fff; }
     .primary:hover { background: var(--accent2); }
     .secondary { background: #f4ece6; color: var(--text); }
+    .secondary:hover { background: #ece1d8; }
     button:disabled { opacity: .55; cursor: not-allowed; }
+    a.button.disabled { opacity: .55; pointer-events: none; }
     .status { min-height: 22px; color: var(--muted); font-size: 14px; margin-top: 8px; }
     .translation {
       display: none;
@@ -119,15 +121,56 @@
       font-size: 14px;
     }
     .step b { display: block; margin-bottom: 3px; }
+
+    .banner {
+      display: none;
+      background: #fff0ed;
+      border: 1px solid #f3c6bf;
+      color: #7e1f17;
+      border-radius: 14px;
+      padding: 13px 15px;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .banner.show { display: block; }
+    .banner b { display: block; margin-bottom: 3px; }
+
+    .fallback {
+      display: none;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .fallback.show { display: block; }
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .btn-row > * { margin-top: 0; }
+    .manual { display: none; margin-top: 14px; }
+    .manual.show { display: block; }
+    .manual label { margin-top: 14px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    .field { background: #fafafa; }
+    textarea.field { min-height: 240px; }
+
     @media (max-width: 620px) {
       .wrap { width: min(100% - 22px, 760px); padding-top: 18px; }
       .hero, .card { padding: 18px; border-radius: 16px; }
       .steps { grid-template-columns: 1fr; }
+      .btn-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <main class="wrap">
+    <div id="inAppBanner" class="banner">
+      <b>You are browsing inside another app.</b>
+      The email button often does not work in in-app browsers. Tap the menu
+      (••• or the share icon) and choose <b style="display:inline">Open in browser</b>
+      first. If you would rather stay here, use the copy option further down instead.
+    </div>
+
     <section class="hero">
       <div class="eyebrow">Official public comment opportunity</div>
       <h1>Speak Up for Wangwang</h1>
@@ -165,37 +208,176 @@
     <section class="card">
       <h2>2. Open the email</h2>
       <p>The recipient, subject, and standard text will be filled in automatically, along with your English and Chinese comments.</p>
-      <button id="emailBtn" class="primary" disabled>Open Ready-to-Send Email</button>
+
+      <a id="emailLink" class="button primary disabled" href="#" role="button">Open Ready-to-Send Email</a>
       <p class="note">Before sending, review the message, add your name at the bottom, and make any changes you want.</p>
+
+      <div id="fallback" class="fallback">
+        <h3>Nothing happened?</h3>
+        <p class="note" style="margin-top:0">
+          Some phones and in-app browsers have no email app set up. Either of these will work instead.
+        </p>
+        <div class="btn-row">
+          <button id="copyBtn" class="secondary">Copy the whole email</button>
+          <a id="gmailLink" class="button secondary" target="_blank" rel="noopener noreferrer">Open in Gmail</a>
+        </div>
+        <button id="showBtn" class="secondary">Show the email text</button>
+
+        <div id="manual" class="manual">
+          <label for="toField">Send to</label>
+          <input id="toField" class="field" readonly />
+          <button id="copyToBtn" class="secondary">Copy address</button>
+
+          <label for="subjField">Subject</label>
+          <input id="subjField" class="field" readonly />
+          <button id="copySubjBtn" class="secondary">Copy subject</button>
+
+          <label for="bodyField">Message</label>
+          <textarea id="bodyField" class="field" readonly></textarea>
+          <button id="copyBodyBtn" class="secondary">Copy message</button>
+        </div>
+      </div>
     </section>
   </main>
 
   <script>
-    const english = document.getElementById("english");
-    const chinese = document.getElementById("chinese");
-    const translateBtn = document.getElementById("translateBtn");
-    const emailBtn = document.getElementById("emailBtn");
-    const status = document.getElementById("status");
-    const translationWrap = document.getElementById("translationWrap");
+    var RECIPIENT = "fanwangbaofa@cac.gov.cn";
+    var SUBJECT = "Public Comment on the Proposed Anti-Cyberviolence Law";
 
-    translateBtn.addEventListener("click", async () => {
-      const text = english.value.trim();
+    var english = document.getElementById("english");
+    var chinese = document.getElementById("chinese");
+    var translateBtn = document.getElementById("translateBtn");
+    var statusEl = document.getElementById("status");
+    var translationWrap = document.getElementById("translationWrap");
+
+    var emailLink = document.getElementById("emailLink");
+    var gmailLink = document.getElementById("gmailLink");
+    var fallback = document.getElementById("fallback");
+    var manual = document.getElementById("manual");
+    var showBtn = document.getElementById("showBtn");
+    var copyBtn = document.getElementById("copyBtn");
+    var toField = document.getElementById("toField");
+    var subjField = document.getElementById("subjField");
+    var bodyField = document.getElementById("bodyField");
+
+    // Many people arrive from TikTok and never leave its in-app browser, where
+    // mailto: links are frequently ignored with no feedback at all.
+    (function detectInAppBrowser() {
+      var ua = navigator.userAgent || "";
+      var inApp = /BytedanceWebview|TikTok|musical_ly|Bytedance|FBAN|FBAV|FB_IAB|Instagram|Snapchat|Line\/|Twitter|Pinterest/i.test(ua);
+      if (inApp) {
+        document.getElementById("inAppBanner").classList.add("show");
+      }
+    })();
+
+    function buildBody(zh, en) {
+      return [
+        "Dear Working Group,",
+        "",
+        "Thank you for providing the public with an opportunity to comment on the proposed Anti-Cyberviolence Law.",
+        "",
+        "My personal comments are below.",
+        "",
+        "Simplified Chinese translation:",
+        zh,
+        "",
+        "English original:",
+        en,
+        "",
+        "I respectfully ask that the final law provide strong protections against online harassment, doxxing, intimidation, false reports, and coordinated attacks against people who document, report, or speak out about animal cruelty.",
+        "",
+        "I also hope China will continue strengthening protections for animal welfare and for people who peacefully advocate on behalf of animals.",
+        "",
+        "Thank you for considering my comments.",
+        "",
+        "Sincerely,",
+        "",
+        "[Your name]"
+      ].join("\n");
+    }
+
+    function currentBody() {
+      return buildBody(chinese.value.trim(), english.value.trim());
+    }
+
+    function refreshEmail() {
+      var en = english.value.trim();
+      var zh = chinese.value.trim();
+      var ready = Boolean(en && zh);
+
+      if (!ready) {
+        emailLink.classList.add("disabled");
+        emailLink.removeAttribute("href");
+        fallback.classList.remove("show");
+        return;
+      }
+
+      var body = buildBody(zh, en);
+
+      emailLink.href =
+        "mailto:" + RECIPIENT +
+        "?subject=" + encodeURIComponent(SUBJECT) +
+        "&body=" + encodeURIComponent(body);
+      emailLink.classList.remove("disabled");
+
+      gmailLink.href =
+        "https://mail.google.com/mail/?view=cm&fs=1" +
+        "&to=" + encodeURIComponent(RECIPIENT) +
+        "&su=" + encodeURIComponent(SUBJECT) +
+        "&body=" + encodeURIComponent(body);
+
+      toField.value = RECIPIENT;
+      subjField.value = SUBJECT;
+      bodyField.value = body;
+
+      fallback.classList.add("show");
+    }
+
+    function copyText(text, button, label) {
+      function done() {
+        button.textContent = "Copied";
+        setTimeout(function () { button.textContent = label; }, 1800);
+      }
+      function legacy() {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "0";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, text.length);
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+        done();
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done)["catch"](legacy);
+      } else {
+        legacy();
+      }
+    }
+
+    translateBtn.addEventListener("click", async function () {
+      var text = english.value.trim();
       if (!text) {
-        status.textContent = "Please write 1–3 sentences first.";
+        statusEl.textContent = "Please write 1–3 sentences first.";
         return;
       }
 
       translateBtn.disabled = true;
-      status.textContent = "Translating…";
+      statusEl.textContent = "Translating…";
 
       try {
-        const res = await fetch("/api/translate", {
+        var res = await fetch("/api/translate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text })
+          body: JSON.stringify({ text: text })
         });
 
-        const data = await res.json();
+        var data = await res.json();
 
         if (!res.ok) {
           throw new Error(data.error || "Translation failed.");
@@ -203,54 +385,47 @@
 
         chinese.value = data.translation;
         translationWrap.classList.add("show");
-        emailBtn.disabled = false;
-        status.textContent = "Translation ready. Review it, then open the email.";
+        refreshEmail();
+        statusEl.textContent = "Translation ready. Review it, then open the email.";
       } catch (err) {
-        status.textContent = err.message || "Translation failed. Please try again.";
+        statusEl.textContent = err.message || "Translation failed. Please try again.";
       } finally {
         translateBtn.disabled = false;
       }
     });
 
-    emailBtn.addEventListener("click", () => {
-      const en = english.value.trim();
-      const zh = chinese.value.trim();
+    // Keep the email in sync if either box is edited by hand.
+    english.addEventListener("input", refreshEmail);
+    chinese.addEventListener("input", refreshEmail);
 
-      if (!en || !zh) {
-        status.textContent = "Please translate your comment first.";
-        return;
+    showBtn.addEventListener("click", function () {
+      var open = manual.classList.toggle("show");
+      showBtn.textContent = open ? "Hide the email text" : "Show the email text";
+      if (open) {
+        manual.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
+    });
 
-      const recipient = "fanwangbaofa@cac.gov.cn";
-      const subject = "Public Comment on the Proposed Anti-Cyberviolence Law";
+    copyBtn.addEventListener("click", function () {
+      var text =
+        "To: " + RECIPIENT + "\n" +
+        "Subject: " + SUBJECT + "\n\n" +
+        currentBody();
+      copyText(text, copyBtn, "Copy the whole email");
+    });
 
-      const body =
-`Dear Working Group,
+    document.getElementById("copyToBtn").addEventListener("click", function () {
+      copyText(RECIPIENT, this, "Copy address");
+    });
+    document.getElementById("copySubjBtn").addEventListener("click", function () {
+      copyText(SUBJECT, this, "Copy subject");
+    });
+    document.getElementById("copyBodyBtn").addEventListener("click", function () {
+      copyText(currentBody(), this, "Copy message");
+    });
 
-Thank you for providing the public with an opportunity to comment on the proposed Anti-Cyberviolence Law.
-
-My personal comments are below.
-
-Simplified Chinese translation:
-${zh}
-
-English original:
-${en}
-
-I respectfully ask that the final law provide strong protections against online harassment, doxxing, intimidation, false reports, and coordinated attacks against people who document, report, or speak out about animal cruelty.
-
-I also hope China will continue strengthening protections for animal welfare and for people who peacefully advocate on behalf of animals.
-
-Thank you for considering my comments.
-
-Sincerely,
-
-[Your name]`;
-
-      const mailto =
-        `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-      window.location.href = mailto;
+    [toField, subjField, bodyField].forEach(function (el) {
+      el.addEventListener("focus", function () { el.select(); });
     });
   </script>
 </body>
