@@ -1,5 +1,5 @@
 /**
- * Cloudflare Worker entry point for the "Speak Up for Wangwang" page.
+ * Cloudflare Worker entry point for the "Speak Up for Wang Wang" page.
  *
  * Static files in ./public are served by the ASSETS binding declared in
  * wrangler.jsonc. Any request that does not match a static file falls through
@@ -60,7 +60,7 @@ const COMPOSE_SYSTEM = [
   "cares deeply about China's brighter future and development. Never invent a",
   "personal name.",
   "",
-  "Wangwang is the name of a dog whose abuse case was widely reported; if the writer",
+  "Wang Wang (also written Wangwang) is the name of a dog whose abuse case was widely reported; if the writer",
   "mentions it, write it as 旺旺 and never treat it as a person's name.",
   "",
   "Vary your sentence structure, paragraph openings and word choice so that no two",
@@ -83,7 +83,7 @@ const TRANSLATE_SYSTEM = [
   "You are a professional English to Simplified Chinese translator.",
   "Translate the user's message into Simplified Chinese.",
   "Use polite, natural, formal written Chinese suitable for an official public comment.",
-  "Wangwang is the name of a dog whose abuse case was widely reported. Always write",
+  "Wang Wang (also written Wangwang) is the name of a dog whose abuse case was widely reported. Always write",
   "it as 旺旺 on its own; never add a Chinese surname and never treat it as a",
   "person's name.",
   "Output ONLY the Simplified Chinese translation, with no explanation or commentary."
