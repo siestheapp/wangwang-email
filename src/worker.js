@@ -176,7 +176,9 @@ function identityNote(scope, country) {
     "The writer is an ordinary person " + place + " who cares about China and",
     "hopes to see it become even better. Include that China has made extraordinary",
     "progress over the past thirty years, and that a country's strength is shown not",
-    "only through its economy but also through how it protects the vulnerable."
+    "only through its economy but also through how it protects the vulnerable.",
+    "The writer is NOT a Chinese citizen: never describe them as 公民 or sign the",
+    "letter as one - sign as an ordinary person (普通人) instead."
   ].join(" ");
 }
 
