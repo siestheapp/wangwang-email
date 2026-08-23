@@ -271,23 +271,28 @@
 
     <section class="card" id="sendCard" style="display:none">
       <h2>4. Send it</h2>
+
+      <div id="sendWebviewNote" class="banner">
+        <b>You're inside another app's browser.</b>
+        The buttons below often do nothing in here. Tap the menu (••• or the share
+        icon) and choose <b style="display:inline">Open in browser</b> first — or
+        use <b style="display:inline">Copy the whole email</b>, which works anywhere.
+      </div>
+
       <p>The address and subject are filled in for you. Nothing is sent until you press
       send in your own email app.</p>
 
-      <a id="emailLink" class="button primary disabled" href="#" role="button">Open Ready-to-Send Email</a>
-      <p class="note">Review the message once more before sending.</p>
+      <a id="emailLink" class="button primary disabled" href="#" role="button">Open in Your Mail App</a>
+      <div class="btn-row" style="margin-top:12px">
+        <a id="gmailLink" class="button secondary" target="_blank" rel="noopener noreferrer">Open in Gmail</a>
+        <button id="copyBtn" class="secondary">Copy the whole email</button>
+      </div>
+      <p class="note">The first button uses whatever email app your phone treats as its
+      default. If that opens the wrong account, use Gmail or copy the email instead.
+      Review the message once more before sending.</p>
 
       <div id="fallback" class="fallback">
-        <h3>Nothing happened?</h3>
-        <p class="note" style="margin-top:0">
-          Some phones and in-app browsers have no email app set up, and this letter is long
-          enough that a few mail apps cut it short. Either of these always works.
-        </p>
-        <div class="btn-row">
-          <button id="copyBtn" class="secondary">Copy the whole email</button>
-          <a id="gmailLink" class="button secondary" target="_blank" rel="noopener noreferrer">Open in Gmail</a>
-        </div>
-        <button id="showBtn" class="secondary">Show the email text</button>
+        <button id="showBtn" class="secondary" style="margin-top:0">Show the email text</button>
 
         <div id="manual" class="manual">
           <label for="toField">Send to</label>
@@ -356,6 +361,9 @@
       var ua = navigator.userAgent || "";
       if (/BytedanceWebview|TikTok|musical_ly|Bytedance|FBAN|FBAV|FB_IAB|Instagram|Snapchat|Line\/|Twitter|Pinterest/i.test(ua)) {
         document.getElementById("inAppBanner").classList.add("show");
+        // Repeat the warning inside the send card - by the time someone reaches
+        // the send button, the top banner has scrolled far out of view.
+        document.getElementById("sendWebviewNote").classList.add("show");
       }
     })();
 
