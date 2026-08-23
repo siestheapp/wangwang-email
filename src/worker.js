@@ -56,8 +56,9 @@ const COMPOSE_SYSTEM = [
   "",
   "5. Close by briefly restating the writer's hope, respectfully asking that the",
   "suggestions be considered, and thanking the staff again. Sign off as an ordinary",
-  "citizen, or as an ordinary person from the country named below, who cares deeply",
-  "about China's brighter future and development. Never invent a personal name.",
+  "citizen, or as an ordinary person matching the identity note given below, who",
+  "cares deeply about China's brighter future and development. Never invent a",
+  "personal name.",
   "",
   "Wangwang is the name of a dog whose abuse case was widely reported; if the writer",
   "mentions it, write it as 旺旺 and never treat it as a person's name.",
@@ -173,9 +174,9 @@ function identityNote(scope, country) {
       "animal welfare."
     ].join(" ");
   }
-  var place = country || "another country";
+  var place = country ? "from " + country : "from outside China";
   return [
-    "The writer is an ordinary person from " + place + " who cares about China and",
+    "The writer is an ordinary person " + place + " who cares about China and",
     "hopes to see it become even better. Include that China has made extraordinary",
     "progress over the past thirty years, and that a country's strength is shown not",
     "only through its economy but also through how it protects the vulnerable."
@@ -348,9 +349,6 @@ async function handleLetter(request, env) {
   }
   if (impact.length + emphasis.length > MAX_INPUT) {
     return json({ error: "Please keep your notes under 1,500 characters." }, 400);
-  }
-  if (scope !== "chinese" && !country) {
-    return json({ error: "Please say which country you are writing from." }, 400);
   }
 
   const userMessage = [

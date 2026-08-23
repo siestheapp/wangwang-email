@@ -74,6 +74,15 @@
     }
     .step b { display: block; margin-bottom: 3px; }
 
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+    .chip {
+      width: auto; display: inline-block; margin-top: 0;
+      border: 1px solid #d8ccc2; border-radius: 999px; padding: 9px 14px;
+      background: #fff; color: var(--text); font-weight: 500; font-size: 14px;
+      text-align: left; line-height: 1.35;
+    }
+    .chip.selected { border-color: var(--accent); background: #fff0ed; color: var(--accent2); font-weight: 700; }
+
     .choice { display: grid; gap: 10px; margin-bottom: 12px; }
     .choice-item {
       display: flex; align-items: flex-start; gap: 10px;
@@ -141,7 +150,7 @@
       <span class="deadline" id="deadline">Deadline: August 28, 2026</span>
 
       <div class="steps">
-        <div class="step"><b>1. Tell us</b>A few sentences, in your own words.</div>
+        <div class="step"><b>1. Tell us</b>Tap what's true for you; add your own words if you like.</div>
         <div class="step"><b>2. Compose</b>Get a full letter in Simplified Chinese.</div>
         <div class="step"><b>3. Send</b>Review it, then send it yourself.</div>
       </div>
@@ -161,29 +170,30 @@
         <label class="choice-item selected" id="optIntl">
           <input type="radio" name="scope" value="international" checked />
           <span>I am writing from another country
-            <small>You will write as someone who cares about China and hopes to see it do even better.</small>
+            <small>You will write as someone from outside China who cares about China and hopes to see it do even better.</small>
           </span>
         </label>
-      </div>
-
-      <div id="countryWrap">
-        <label for="country">Which country?</label>
-        <input id="country" class="field" maxlength="60" placeholder="e.g. United States" />
       </div>
     </section>
 
     <section class="card">
       <h2>2. How has this affected you?</h2>
-      <p class="hint">This is the part that makes your letter yours. Write plainly, in any
-      language — a few sentences is enough. Say how seeing violent images or videos online
-      has affected your daily life and how you feel. If it has upset or traumatised you,
-      it is worth saying so.</p>
+      <p class="hint">This is the part that makes your letter yours. Tap any that are true
+      for you — each one is added below, where you can edit it or add your own words in
+      any language. The more it sounds like you, the stronger your letter is.</p>
+
+      <div class="chips" id="chips">
+        <button type="button" class="chip">A video of animal cruelty appeared on my feed even though I never searched for it.</button>
+        <button type="button" class="chip">What happened to Wangwang broke my heart, and I can't stop thinking about it.</button>
+        <button type="button" class="chip">After seeing this content I couldn't sleep or focus for days.</button>
+        <button type="button" class="chip">It disturbs me that people make money filming animals being hurt.</button>
+        <button type="button" class="chip">I'm worried about children coming across these videos with no warning.</button>
+        <button type="button" class="chip">People who report this cruelty get harassed and their personal details leaked.</button>
+        <button type="button" class="chip">I now feel anxious opening social media, afraid of what will appear.</button>
+      </div>
 
       <label for="impact">Your words</label>
-      <textarea id="impact" maxlength="1200" placeholder="Example: I saw what happened to Wangwang and I could not sleep for days afterwards. I did not go looking for it — it appeared on my feed. I keep thinking about how many people are making money from filming animals being hurt, and about the people who reported it being attacked online for speaking up."></textarea>
-
-      <label for="emphasis" style="margin-top:16px">Anything you especially want to emphasise? <span style="font-weight:400;color:#6f625a">(optional)</span></label>
-      <textarea id="emphasis" maxlength="400" style="min-height:80px" placeholder="Example: I care most about the videos being sold in encrypted group chats, and about children seeing this content."></textarea>
+      <textarea id="impact" maxlength="1200" placeholder="Tap above, or write in your own words — any language is fine."></textarea>
 
       <h3 style="margin-top:18px">Your letter will always ask for these three things</h3>
       <ol class="asks">
@@ -225,8 +235,8 @@
       <button id="explainBtn" class="secondary">Show me what this says in English</button>
       <div id="english" class="english"></div>
       <p class="note">The letter is sent in Chinese only, as the campaign guide asks. It is
-      signed as an ordinary citizen or an ordinary person from your country — you do not
-      have to give your name.</p>
+      signed simply as an ordinary citizen or an ordinary person — you do not have to
+      give your name.</p>
 
       <button id="regenerateBtn" class="secondary">Write me a different version</button>
     </section>
@@ -273,9 +283,6 @@
     var DEADLINE = new Date(2026, 7, 28);
 
     var impact = document.getElementById("impact");
-    var emphasis = document.getElementById("emphasis");
-    var country = document.getElementById("country");
-    var countryWrap = document.getElementById("countryWrap");
     var composeBtn = document.getElementById("composeBtn");
     var regenerateBtn = document.getElementById("regenerateBtn");
     var explainBtn = document.getElementById("explainBtn");
@@ -328,10 +335,32 @@
 
     function syncScope() {
       var scope = selectedScope();
-      countryWrap.style.display = scope === "chinese" ? "none" : "block";
       document.getElementById("optChinese").classList.toggle("selected", scope === "chinese");
       document.getElementById("optIntl").classList.toggle("selected", scope !== "chinese");
     }
+
+    // Tapping a chip adds its sentence to the notes box (still editable there);
+    // tapping again removes it, as long as the sentence hasn't been edited.
+    Array.prototype.forEach.call(
+      document.querySelectorAll("#chips .chip"),
+      function (chip) {
+        chip.addEventListener("click", function () {
+          var sentence = chip.textContent.trim();
+          var current = impact.value;
+          if (chip.classList.contains("selected")) {
+            chip.classList.remove("selected");
+            var at = current.indexOf(sentence);
+            if (at !== -1) {
+              impact.value = (current.slice(0, at) + current.slice(at + sentence.length))
+                .replace(/\n{3,}/g, "\n\n").replace(/^\s+|\s+$/g, "");
+            }
+          } else {
+            chip.classList.add("selected");
+            impact.value = current.trim() ? current.replace(/\s+$/, "") + "\n" + sentence : sentence;
+          }
+        });
+      }
+    );
 
     Array.prototype.forEach.call(
       document.querySelectorAll("input[name=scope]"),
@@ -397,16 +426,11 @@
     async function compose(isRetry) {
       var notes = impact.value.trim();
       if (!notes) {
-        statusEl.textContent = "Please write a few sentences in your own words first.";
+        statusEl.textContent = "Please tap at least one statement above, or write a sentence of your own.";
         impact.focus();
         return;
       }
       var scope = selectedScope();
-      if (scope !== "chinese" && !country.value.trim()) {
-        statusEl.textContent = "Please say which country you are writing from.";
-        country.focus();
-        return;
-      }
 
       composeBtn.disabled = true;
       regenerateBtn.disabled = true;
@@ -421,9 +445,7 @@
           body: JSON.stringify({
             mode: "compose",
             impact: notes,
-            emphasis: emphasis.value.trim(),
-            scope: scope,
-            country: country.value.trim()
+            scope: scope
           })
         });
 
