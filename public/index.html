@@ -31,15 +31,24 @@
       padding: 24px;
       box-shadow: 0 10px 30px rgba(80, 50, 35, .06);
     }
-    .hero { margin-bottom: 18px; }
-    .heroPhoto { margin: 0 0 16px; }
+    .hero { margin-bottom: 18px; padding: 0; overflow: hidden; }
+    .heroPhoto { position: relative; margin: 0; }
     .heroPhoto img {
-      display: block; width: min(230px, 62%); height: auto;
-      margin: 0 auto; border-radius: 18px;
-      box-shadow: 0 8px 24px rgba(80, 50, 35, .18);
+      display: block; width: 100%; aspect-ratio: 1 / 1;
+      object-fit: cover; object-position: 50% 78%;
+    }
+    /* Dissolve the photo's lower edge into the card so the headline sits in the fade. */
+    .heroPhoto::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(to bottom, rgba(255,255,255,0) 58%, var(--card) 97%);
     }
     .heroPhoto figcaption {
-      text-align: center; font-size: 13px; color: var(--muted); margin-top: 8px;
+      position: absolute; right: 18px; bottom: 6px; z-index: 1;
+      font-size: 13px; color: var(--muted);
+    }
+    .heroBody { padding: 4px 24px 24px; }
+    @media (min-width: 620px) {
+      .heroPhoto img { aspect-ratio: 16 / 9; object-position: 50% 70%; }
     }
     .eyebrow {
       color: var(--accent); font-size: 13px; font-weight: 800;
@@ -136,6 +145,8 @@
     @media (max-width: 620px) {
       .wrap { width: min(100% - 22px, 760px); padding-top: 18px; }
       .hero, .card { padding: 18px; border-radius: 16px; }
+      .hero { padding: 0; }
+      .heroBody { padding: 2px 18px 18px; }
       .steps { grid-template-columns: 1fr; }
       .btn-row { grid-template-columns: 1fr; }
     }
@@ -156,17 +167,19 @@
           alt="Wangwang, a small orange-and-white dog, lying in the sun nursing her three puppies" />
         <figcaption>旺旺 · Wangwang</figcaption>
       </figure>
-      <div class="eyebrow">Official public comment opportunity</div>
-      <h1>Speak Up for Wangwang</h1>
-      <p>China is taking public comments on its draft Anti-Cyberviolence Law. Write a few
-      sentences in your own words, and this page will compose a complete letter in
-      Simplified Chinese for you to review and send yourself.</p>
-      <span class="deadline" id="deadline">Deadline: August 28, 2026</span>
+      <div class="heroBody">
+        <div class="eyebrow">Official public comment opportunity</div>
+        <h1>Speak Up for Wangwang</h1>
+        <p>China is taking public comments on its draft Anti-Cyberviolence Law. Write a few
+        sentences in your own words, and this page will compose a complete letter in
+        Simplified Chinese for you to review and send yourself.</p>
+        <span class="deadline" id="deadline">Deadline: August 28, 2026</span>
 
-      <div class="steps">
-        <div class="step"><b>1. Tell us</b>Tap what's true for you; add your own words if you like.</div>
-        <div class="step"><b>2. Compose</b>Get a full letter in Simplified Chinese.</div>
-        <div class="step"><b>3. Send</b>Review it, then send it yourself.</div>
+        <div class="steps">
+          <div class="step"><b>1. Tell us</b>Tap what's true for you; add your own words if you like.</div>
+          <div class="step"><b>2. Compose</b>Get a full letter in Simplified Chinese.</div>
+          <div class="step"><b>3. Send</b>Review it, then send it yourself.</div>
+        </div>
       </div>
     </section>
 
