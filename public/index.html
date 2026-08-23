@@ -37,18 +37,17 @@
       display: block; width: 100%; aspect-ratio: 1 / 1;
       object-fit: cover; object-position: 50% 78%;
     }
-    /* Dissolve the photo's lower edge into the card so the headline sits in the fade. */
+    /* Dissolve the photo's lower edge into the card so the headline sits in the fade,
+       overlapping up into the puppies. */
     .heroPhoto::after {
       content: ""; position: absolute; inset: 0; pointer-events: none;
-      background: linear-gradient(to bottom, rgba(255,255,255,0) 58%, var(--card) 97%);
+      background: linear-gradient(to bottom, rgba(255,255,255,0) 34%, var(--card) 78%);
     }
-    .heroPhoto figcaption {
-      position: absolute; right: 18px; bottom: 6px; z-index: 1;
-      font-size: 13px; color: var(--muted);
-    }
-    .heroBody { padding: 4px 24px 24px; }
+    .photoCredit { text-align: right; font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+    .heroBody { position: relative; z-index: 1; margin-top: -118px; padding: 0 24px 24px; }
     @media (min-width: 620px) {
       .heroPhoto img { aspect-ratio: 4 / 3; object-position: 50% 22%; }
+      .heroBody { margin-top: -104px; }
     }
     .eyebrow {
       color: var(--accent); font-size: 13px; font-weight: 800;
@@ -146,7 +145,7 @@
       .wrap { width: min(100% - 22px, 760px); padding-top: 18px; }
       .hero, .card { padding: 18px; border-radius: 16px; }
       .hero { padding: 0; }
-      .heroBody { padding: 2px 18px 18px; }
+      .heroBody { padding: 0 18px 18px; }
       .steps { grid-template-columns: 1fr; }
       .btn-row { grid-template-columns: 1fr; }
     }
@@ -165,9 +164,9 @@
       <figure class="heroPhoto">
         <img src="/wangwang.jpeg" width="411" height="486"
           alt="Wangwang, a small orange-and-white dog, lying in the sun nursing her three puppies" />
-        <figcaption>旺旺 · Wangwang</figcaption>
       </figure>
       <div class="heroBody">
+        <div class="photoCredit">旺旺 · Wangwang</div>
         <div class="eyebrow">Official public comment opportunity</div>
         <h1>Speak Up for Wangwang</h1>
         <p>China is taking public comments on its draft Anti-Cyberviolence Law. Write a few
