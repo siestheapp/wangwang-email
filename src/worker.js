@@ -102,13 +102,18 @@ function json(data, status) {
 }
 
 // Reasoning models can prefix their answer with a thinking block. Keep only
-// whatever follows the final closing tag.
+// whatever follows the final closing tag. If the generation was cut off
+// mid-reasoning (an opening tag with no close), nothing usable survived -
+// return empty so callers produce their "try again" error instead of
+// sending chain-of-thought to a visitor as their letter.
 function stripThinking(value) {
   var text = String(value || "");
   var close = "</think>";
   var index = text.lastIndexOf(close);
   if (index !== -1) {
     text = text.slice(index + close.length);
+  } else if (text.indexOf("<think>") !== -1) {
+    return "";
   }
   return text.trim();
 }
