@@ -32,6 +32,15 @@
       box-shadow: 0 10px 30px rgba(80, 50, 35, .06);
     }
     .hero { margin-bottom: 18px; }
+    .heroPhoto { margin: 0 0 16px; }
+    .heroPhoto img {
+      display: block; width: min(230px, 62%); height: auto;
+      margin: 0 auto; border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(80, 50, 35, .18);
+    }
+    .heroPhoto figcaption {
+      text-align: center; font-size: 13px; color: var(--muted); margin-top: 8px;
+    }
     .eyebrow {
       color: var(--accent); font-size: 13px; font-weight: 800;
       text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px;
@@ -142,6 +151,11 @@
     </div>
 
     <section class="hero">
+      <figure class="heroPhoto">
+        <img src="/wangwang.jpeg" width="411" height="486"
+          alt="Wangwang, a small orange-and-white dog, lying in the sun nursing her three puppies" />
+        <figcaption>旺旺 · Wangwang</figcaption>
+      </figure>
       <div class="eyebrow">Official public comment opportunity</div>
       <h1>Speak Up for Wangwang</h1>
       <p>China is taking public comments on its draft Anti-Cyberviolence Law. Write a few
