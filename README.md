@@ -1,4 +1,4 @@
-# Speak Up for Wangwang - public comment page
+# Speak Up for Wang Wang - public comment page
 
 A one-page advocacy site for the public comment period on China's draft
 Anti-Cyberviolence Law. A visitor taps the statements that are true for them
@@ -47,7 +47,7 @@ Two rules the guide is strict about, and how they are met:
 
 ```
 public/index.html   static page: chips UI, letter review, email step
-public/wangwang.jpeg  hero photo (Wangwang and her puppies)
+public/wangwang.jpeg  hero photo (Wang Wang and her puppies)
 src/worker.js       Worker entry point; /api/letter, /api/translate,
                     /api/health, and the BudgetCounter Durable Object
 wrangler.jsonc      config: main, assets, ai, vars (MAX_AI_CALLS),

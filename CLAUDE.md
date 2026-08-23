@@ -37,7 +37,7 @@ own mail app. Nothing is ever sent automatically — the visitor reviews and sen
 Cloudflare Workers (Paid plan, $5/month), deployed from GitHub.
 
     public/index.html    static page, served by the Workers assets binding
-    public/wangwang.jpeg hero photo (Wangwang — she was female — with her puppies)
+    public/wangwang.jpeg hero photo (Wang Wang — she was female — with her puppies)
     src/worker.js        Worker entry point, all API routes + BudgetCounter DO
     wrangler.jsonc       config: main, assets, ai, vars, durable_objects, migrations
     README.md            project documentation (kept current; update it when
@@ -119,7 +119,7 @@ Five-part structure (flowing paragraphs, not numbered or labelled):
 Tone must be polite and constructive throughout, never angry or accusatory.
 Letters are signed as an ordinary citizen / ordinary person from the named country.
 No real name is collected — deliberate, since doxxing of advocates is the subject.
-"Wangwang" is a dog and must render as 旺旺, never with a surname (the model got
+"Wang Wang" (one dog, two words in English) is a dog and must render as 旺旺, never with a surname (the model got
 this wrong until the system prompt was corrected).
 
 ## SPEND PROTECTION — DO NOT WEAKEN THIS
